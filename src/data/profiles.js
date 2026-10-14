@@ -3,7 +3,7 @@ export const INITIAL_PROFILES = [
     id: "brian-chesky",
     name: "Brian Chesky",
     title: "Co-Founder & CEO at Airbnb",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400",
+    avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400",
     linkedin: "https://www.linkedin.com/in/brianchesky/",
     instagram: "https://www.instagram.com/bchesky/",
     gender: "male",

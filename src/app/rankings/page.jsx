@@ -83,6 +83,10 @@ export default function RankingsPage() {
                     <img
                       src={person.avatar}
                       alt={person.name}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400";
+                      }}
                       className="w-8 h-8 rounded-lg object-cover"
                     />
                     <div className="min-w-0 flex-1">
@@ -105,6 +109,10 @@ export default function RankingsPage() {
                     <img
                       src={selectedPerson.avatar}
                       alt={selectedPerson.name}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400";
+                      }}
                       className="w-14 h-14 rounded-2xl object-cover border border-rose-500/30"
                     />
                     <div>
@@ -159,6 +167,10 @@ export default function RankingsPage() {
                           <img
                             src={match.candidate.avatar}
                             alt={match.candidate.name}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400";
+                            }}
                             className="w-12 h-12 rounded-xl object-cover border border-white/10"
                           />
 

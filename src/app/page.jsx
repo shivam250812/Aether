@@ -254,6 +254,10 @@ export default function HomePage() {
                     <img
                       src={person.avatar}
                       alt={person.name}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400";
+                      }}
                       className="w-14 h-14 rounded-2xl object-cover border border-white/10 group-hover:border-rose-500/50 transition-colors shadow-md"
                     />
                     <div className="flex-1 min-w-0">

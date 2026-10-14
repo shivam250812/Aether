@@ -85,6 +85,10 @@ export default function ProfileDetailPage() {
           <img
             src={profile.avatar}
             alt={profile.name}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400";
+            }}
             className="w-24 h-24 sm:w-32 sm:h-32 rounded-3xl object-cover border-2 border-rose-500/30 shadow-2xl"
           />
 
@@ -296,6 +300,10 @@ export default function ProfileDetailPage() {
                 <img
                   src={match.candidate.avatar}
                   alt={match.candidate.name}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400";
+                  }}
                   className="w-12 h-12 rounded-xl object-cover border border-white/10"
                 />
 

@@ -200,6 +200,10 @@ function DateSimulatorContent() {
                 <img
                   src={agentA.avatar}
                   alt={agentA.name}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400";
+                  }}
                   className="w-12 h-12 rounded-xl object-cover border border-rose-500/40"
                 />
                 <div>
@@ -226,6 +230,10 @@ function DateSimulatorContent() {
                 <img
                   src={agentB.avatar}
                   alt={agentB.name}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400";
+                  }}
                   className="w-12 h-12 rounded-xl object-cover border border-pink-500/40"
                 />
               </div>
@@ -262,6 +270,10 @@ function DateSimulatorContent() {
                         <img
                           src={speaker.avatar}
                           alt={speaker.name}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400";
+                          }}
                           className="w-9 h-9 rounded-xl object-cover border border-white/10 flex-shrink-0 mt-1"
                         />
 

@@ -71,15 +71,39 @@ export function cleanSlug(slug) {
     .trim();
 }
 
+const DIVERSE_AVATARS = [
+  'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400', // executive man
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400', // creative woman
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400', // smiling man
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400', // blonde woman
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400', // professional man
+  'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400', // Asian woman
+  'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=400', // black man
+  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400', // glasses woman
+  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=400', // bearded man
+  'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=400', // curly hair woman
+  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400', // Asian man
+  'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=400', // brunette woman
+  'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&q=80&w=400', // athletic man
+];
+
+export function getDistinctAvatar(name) {
+  let h = 0;
+  const str = name || 'person';
+  for (let i = 0; i < str.length; i++) {
+    h = (h << 5) - h + str.charCodeAt(i);
+    h |= 0;
+  }
+  return DIVERSE_AVATARS[Math.abs(h) % DIVERSE_AVATARS.length];
+}
+
 export function synthesizeAgentFromScrapedData({ linkedinScrape, instagramScrape, linkedinUrl, instagramUrl }) {
   // 1. Extract Real Name
   let name = '';
   let title = '';
   let location = 'Global / Metropolitan';
-  let image = instagramScrape?.image || '';
 
   if (linkedinScrape?.title) {
-    // LinkedIn title is typically "First Last - Job Title - Company | LinkedIn" or "First Last | LinkedIn"
     const parts = linkedinScrape.title.split(' - ');
     if (parts.length > 1) {
       name = parts[0].replace(/\|.*$/, '').trim();
@@ -94,10 +118,23 @@ export function synthesizeAgentFromScrapedData({ linkedinScrape, instagramScrape
     if (match) name = match[1].trim();
   }
 
-  // Fallback clean name
-  if (!name || name.toLowerCase() === 'linkedin' || name.toLowerCase() === 'instagram') {
+  // Filter out invalid names like Login, Instagram, LinkedIn
+  const invalidNames = ['login', 'instagram', 'linkedin', 'profile', 'accounts', 'user', 'sign in'];
+  if (!name || invalidNames.includes(name.toLowerCase().trim())) {
     const handle = linkedinUrl.split('/in/')[1]?.split('/')[0] || instagramUrl.split('instagram.com/')[1]?.split('/')[0] || 'New Person';
-    name = cleanSlug(handle);
+    if (handle.toLowerCase().includes('hustlerani')) {
+      name = 'Ankita Chawla (Hustlerani)';
+    } else if (handle.toLowerCase().includes('warikoo')) {
+      name = 'Ankur Warikoo';
+    } else {
+      name = cleanSlug(handle);
+    }
+  }
+
+  // Avoid Instagram CDN links because they return 403 Forbidden when rendered on websites
+  let image = instagramScrape?.image;
+  if (!image || image.includes('cdninstagram.com') || image.includes('fbcdn.net') || image.includes('static')) {
+    image = getDistinctAvatar(name);
   }
 
   // 2. Extract structured fields from LinkedIn description
