@@ -1,0 +1,9 @@
+{
+	"actorSpecification": 1,
+	"name": "linkedin-company-hr-profiles",
+	"version": "0.1",
+	"buildTag": "latest",
+	"environmentVariables": {},
+	"dockerfile": "./Dockerfile",
+	"input": "./input_schema.json"
+}

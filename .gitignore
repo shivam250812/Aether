@@ -1,0 +1,10 @@
+storage
+node_modules
+.next
+.venv
+# Scraped personal data - keep it out of version control
+hr-profiles*.xlsx
+hotel-outreach.xlsx
+# Logged-in LinkedIn browser profile - equivalent to your password
+.linkedin-session/
+

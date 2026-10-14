@@ -1,0 +1,93 @@
+{
+    "title": "LinkedIn Company HR Profiles",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "companies": {
+            "title": "Companies",
+            "type": "array",
+            "description": "LinkedIn company URLs (most reliable) or plain company names. Processed one at a time, in order.",
+            "editor": "stringList",
+            "prefill": [
+                "https://www.linkedin.com/company/zoho/",
+                "Freshworks"
+            ]
+        },
+        "userDataDir": {
+            "title": "Session profile folder",
+            "type": "string",
+            "description": "Chrome profile directory created by \"npm run login\".",
+            "default": ".linkedin-session",
+            "editor": "textfield"
+        },
+        "liAtCookie": {
+            "title": "LinkedIn li_at cookie",
+            "type": "string",
+            "description": "Fallback only (e.g. Apify cloud). Locally, run \"npm run login\" instead: LinkedIn quickly revokes pasted cookies used in a different browser. Can also come from LINKEDIN_LI_AT.",
+            "editor": "textfield",
+            "isSecret": true
+        },
+        "allEmployees": {
+            "title": "All employees",
+            "type": "boolean",
+            "description": "Take everyone on the company's People tab, ignoring the role keywords below. LinkedIn shows at most ~1,000 members per company.",
+            "default": false
+        },
+        "profileDetails": {
+            "title": "Open each profile",
+            "type": "boolean",
+            "description": "On: visit every profile for experience, education, about, location and connections (one page per person, slow, counts toward the per-run cap). Off: only name, headline and profile URL from the People tab (fast, hundreds of people in minutes).",
+            "default": true
+        },
+        "hrKeywords": {
+            "title": "HR headline keywords",
+            "type": "array",
+            "description": "A person is kept only if their headline contains one of these (whole word, case-insensitive). Leave empty for the built-in list.",
+            "editor": "stringList"
+        },
+        "peopleSearchTerms": {
+            "title": "People-tab search terms",
+            "type": "array",
+            "description": "Terms searched on each company's People tab. Each costs a page load. Leave empty for the default: HR, Talent Acquisition, Recruiter, Human Resources.",
+            "editor": "stringList"
+        },
+        "maxProfilesPerCompany": {
+            "title": "Max profiles per company",
+            "type": "integer",
+            "default": 25,
+            "minimum": 1
+        },
+        "maxProfilesTotal": {
+            "title": "Max profiles per run",
+            "type": "integer",
+            "description": "Hard cap on profile pages opened across all companies, to stay under LinkedIn's per-account daily view limits. People-tab-only rows (Open each profile = off) don't count.",
+            "default": 150,
+            "minimum": 1
+        },
+        "minDelayMs": {
+            "title": "Min delay between pages (ms)",
+            "type": "integer",
+            "default": 4000
+        },
+        "maxDelayMs": {
+            "title": "Max delay between pages (ms)",
+            "type": "integer",
+            "default": 10000
+        },
+        "headless": {
+            "title": "Headless browser",
+            "type": "boolean",
+            "default": false
+        },
+        "outputFile": {
+            "title": "Output file name",
+            "type": "string",
+            "description": "Written to the working directory (the project root when run locally). Also saved as OUTPUT_XLSX in the key-value store.",
+            "default": "hr-profiles.xlsx",
+            "editor": "textfield"
+        }
+    },
+    "required": [
+        "companies"
+    ]
+}
