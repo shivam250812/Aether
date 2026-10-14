@@ -122,13 +122,7 @@ export function synthesizeAgentFromScrapedData({ linkedinScrape, instagramScrape
   const invalidNames = ['login', 'instagram', 'linkedin', 'profile', 'accounts', 'user', 'sign in'];
   if (!name || invalidNames.includes(name.toLowerCase().trim())) {
     const handle = linkedinUrl.split('/in/')[1]?.split('/')[0] || instagramUrl.split('instagram.com/')[1]?.split('/')[0] || 'New Person';
-    if (handle.toLowerCase().includes('hustlerani')) {
-      name = 'Ankita Chawla (Hustlerani)';
-    } else if (handle.toLowerCase().includes('warikoo')) {
-      name = 'Ankur Warikoo';
-    } else {
-      name = cleanSlug(handle);
-    }
+    name = cleanSlug(handle);
   }
 
   // Avoid Instagram CDN links because they return 403 Forbidden when rendered on websites
