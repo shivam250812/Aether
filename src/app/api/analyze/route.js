@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { addGlobalProfile } from '../profiles/route';
+import { scrapePublicUrl, synthesizeAgentFromScrapedData } from '@/lib/dynamic-extractor';
 
 // Curated profiles for high-profile figures often tested in demos
 const KNOWN_FIGURES = {
@@ -79,283 +80,45 @@ const KNOWN_FIGURES = {
       'Transactional relationships without genuine care'
     ]
   },
-  'sam': {
-    name: 'Sam Altman',
-    title: 'CEO at OpenAI, Co-Founder of Tools for Humanity',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400',
-    location: 'San Francisco, CA / Big Sur, CA',
+  'bill': {
+    name: 'Bill Gates',
+    title: 'Co-Founder of Microsoft, Co-Chair of Bill & Melinda Gates Foundation',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400',
+    location: 'Seattle, WA',
     gender: 'male',
-    interestedIn: ['male', 'female'],
-    agentSummary: 'Strategic architect of the artificial intelligence frontier. Driven by planetary ambition, techno-optimism, clean energy, and quiet pastoral escapes in nature.',
+    interestedIn: ['female'],
+    agentSummary: 'Voracious reader, bridge player, and philanthropist devoted to eradicating disease and scaling clean energy innovations worldwide.',
     needs: [
-      'A partner who can navigate the dizzying vortex of global AI discussions with composure',
-      'Deep appreciation for quiet rural weekends: farming, hiking, and cows in Big Sur',
-      'Unwavering trust, intellectual equality, and high emotional EQ',
-      'Shared optimism about human potential and solving civilizational challenges'
+      'Intellectual sparring partner with endless curiosity about books, science, and history',
+      'Shared dedication to global humanitarian impact and climate innovation',
+      'Appreciation for quiet reading retreats, competitive bridge games, and tennis',
+      'High emotional grounding and mutual intellectual respect'
     ],
     hobbies: [
-      'Tending to cows and orchards at his quiet Big Sur ranch',
-      'Fast track driving and classic sports cars',
-      'Reading historical biographies of industrial revolutions',
-      'Practicing meditation and off-grid wilderness retreats'
+      'Voracious reading across science, history, and immunology',
+      'Playing tournament-level bridge and racquet sports',
+      'Visiting research labs, nuclear reactor facilities, and agricultural centers',
+      'Writing long-form reflections and annual book recommendations'
     ],
     interests: [
-      'Artificial General Intelligence & post-scarcity economics',
-      'Nuclear fusion energy and supersonic flight',
-      'Longevity biology and cellular reprogramming',
-      'Philosophy of consciousness'
+      'Clean energy technology and next-gen nuclear reactors',
+      'Global health, eradication of polio, and vaccine distribution',
+      'Artificial intelligence in education and healthcare',
+      'Poverty reduction and agricultural innovation'
     ],
     qualities: {
-      communicationStyle: 'Concise, hyper-clear, calm, visionary, understated',
-      energy: 'Quiet intensity, strategic brilliance, forward-looking',
-      humor: 'Dry, minimalist, ironic tech observation',
-      values: ['Radical optimism', 'High agency', 'Truth-seeking', 'Steadfast loyalty']
+      communicationStyle: 'Analytical, intensely curious, data-driven, and earnest',
+      energy: 'Intellectual powerhouse, optimistic, and relentless',
+      humor: 'Nerdy, self-deprecating, wry',
+      values: ['Impact', 'Intellectual rigor', 'Optimism', 'Generosity']
     },
     dealbreakers: [
-      'Doomerism and defeatist fatalism',
-      'Indiscretion and loose gossiping',
-      'Fear of ambitious ideas'
+      'Anti-scientific thinking or willful ignorance',
+      'Cynicism about human progress',
+      'Lack of curiosity'
     ]
   }
 };
-
-function extractUsernameFromUrl(url, domain) {
-  try {
-    const parsed = new URL(url.trim());
-    const pathParts = parsed.pathname.split('/').filter(Boolean);
-    if (domain === 'linkedin') {
-      const inIdx = pathParts.indexOf('in');
-      if (inIdx !== -1 && pathParts[inIdx + 1]) {
-        return pathParts[inIdx + 1];
-      }
-      return pathParts[0] || 'profile';
-    } else if (domain === 'instagram') {
-      return pathParts[0] || 'user';
-    }
-  } catch (e) {
-    const clean = url.replace(/https?:\/\/(www\.)?/, '').split('/')[1] || url;
-    return clean.replace(/[^a-zA-Z0-9._-]/g, '');
-  }
-  return 'user';
-}
-
-function formatNameFromSlug(slug) {
-  return slug
-    .replace(/[-_.]/g, ' ')
-    .replace(/\b\w/g, c => c.toUpperCase())
-    .replace(/\d+/g, '')
-    .trim() || 'New Candidate';
-}
-
-function detectArchetype(text) {
-  const lower = text.toLowerCase();
-  
-  if (/cricket|kohli|athlete|football|soccer|nba|fitness|runner|sport|gym|tennis|olympic/.test(lower)) {
-    return 'sports';
-  }
-  if (/music|dj|singer|band|actor|film|cinema|producer|creator|youtube|streamer/.test(lower)) {
-    return 'entertainment';
-  }
-  if (/fashion|style|model|beauty|design|luxury|art|curator/.test(lower)) {
-    return 'fashion';
-  }
-  if (/doctor|medicine|health|clinic|surgeon|phd|science|biology/.test(lower)) {
-    return 'health_science';
-  }
-  if (/investor|finance|capital|venture|banker|equity|wealth|trading/.test(lower)) {
-    return 'finance';
-  }
-  return 'general_creative';
-}
-
-function generateArchetypePersona(name, archetype, igHandle) {
-  switch (archetype) {
-    case 'sports':
-      return {
-        title: `Professional Athlete & Fitness Icon (@${igHandle})`,
-        avatar: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&q=80&w=400',
-        location: 'Global / Athletic Hub',
-        agentSummary: `Elite sports performer and high-performance icon. Dedication to physical mastery, disciplined daily execution, and mental fortitude under pressure, paired with deep private warmth and loyalty.`,
-        needs: [
-          'A partner who respects rigorous training schedules, recovery routines, and healthy nutrition',
-          'Emotional grounding and peace away from public competitions and stadiums',
-          'Mutual drive, active outdoor enthusiasm, and strong loyalty',
-          'Spontaneous laughter, great meals, and no pretense'
-        ],
-        hobbies: [
-          'Functional strength training and athletic conditioning',
-          'Recovery protocols: cold therapy, stretching, and physical therapy',
-          'Exploring wholesome cafes and specialty coffee',
-          'Traveling to coastal spots and mountain getaways'
-        ],
-        interests: [
-          'Peak performance psychology and sports science',
-          'Nutrition, longevity, and activewear design',
-          'Youth sports empowerment and mentorship',
-          'Mindfulness and meditation under pressure'
-        ],
-        qualities: {
-          communicationStyle: 'Direct, energetic, motivating, and heartfelt',
-          energy: 'Intense, disciplined, magnetic, and competitive',
-          humor: 'Playful, lively, teasing banter',
-          values: ['Discipline', 'Loyalty', 'Excellence', 'Integrity']
-        },
-        dealbreakers: [
-          'Disregard for personal health and wellness',
-          'Dishonesty and unreliability',
-          'Lack of support for intense athletic drive'
-        ]
-      };
-
-    case 'entertainment':
-      return {
-        title: `Creative Artist & Digital Performer (@${igHandle})`,
-        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=400',
-        location: 'Los Angeles / London / Global',
-        agentSummary: `Dynamic creator and storyteller who connects with audiences through music, film, and visual culture. Combines artistic expression with emotional authenticity and playful energy.`,
-        needs: [
-          'Someone who respects the creative process and irregular production rhythms',
-          'Safe space to be real, silly, and vulnerable away from the spotlight',
-          'A partner with their own creative passions who loves collaboration',
-          'Playful banter, live concerts, and late night conversations'
-        ],
-        hobbies: [
-          'Songwriting, instrument playing, or cinematic video editing',
-          'Attending indie music festivals and gallery openings',
-          'Vintage thrifting and scouring vinyl record shops',
-          'Exploring culinary street food in new cities'
-        ],
-        interests: [
-          'Audio engineering and visual cinematography',
-          'Pop culture trends and creative storytelling',
-          'Creative entrepreneurship and indie distribution',
-          'Contemporary fashion and set design'
-        ],
-        qualities: {
-          communicationStyle: 'Expressive, witty, engaging, and empathetic',
-          energy: 'Radiant, spontaneous, artistic, and charismatic',
-          humor: 'Self-aware, satirical, comedic, and quick',
-          values: ['Originality', 'Empathy', 'Creative freedom', 'Kindness']
-        },
-        dealbreakers: [
-          'Cynicism towards artistic expression',
-          'Clout-chasing and social climbing',
-          'Emotional unavailability'
-        ]
-      };
-
-    case 'fashion':
-      return {
-        title: `Design & Aesthetic Director (@${igHandle})`,
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
-        location: 'Paris / Milan / New York',
-        agentSummary: `Refined visual curator obsessed with proportion, typography, craftsmanship, and timeless style. Values effortless elegance, intellectual conversations, and culinary taste.`,
-        needs: [
-          'Appreciation for aesthetics, architecture, and intentional living',
-          'Intellectual conversations over natural wine and candlelit dinners',
-          'A confident partner with their own distinct personal style and point of view',
-          'Weekend trips to architectural landmarks and art exhibitions'
-        ],
-        hobbies: [
-          'Curating vintage interior objects and ceramics',
-          'Attending runway exhibitions and architectural tours',
-          'Film photography and darkroom printing',
-          'Discovering hidden natural wine bars and bakeries'
-        ],
-        interests: [
-          'Sustainable haute couture and textile innovation',
-          'Modernist architecture and industrial design',
-          'Art history and gallery curation',
-          'Editorial journalism and creative direction'
-        ],
-        qualities: {
-          communicationStyle: 'Articulate, nuanced, observant, and charming',
-          energy: 'Sophisticated, magnetic, composed, and discerning',
-          humor: 'Dry, witty, refined irony',
-          values: ['Craftsmanship', 'Taste', 'Authenticity', 'Elegance']
-        },
-        dealbreakers: [
-          'Carelessness and vulgarity',
-          'Lack of effort or attention to detail',
-          'Insensitivity to creative craft'
-        ]
-      };
-
-    case 'finance':
-      return {
-        title: `Investor & Strategic Capital Allocator (@${igHandle})`,
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400',
-        location: 'New York / London / Miami',
-        agentSummary: `Analytical strategist and builder who evaluates the world through risk, asymmetric opportunities, and market dynamics. Values high integrity, intellectual sparring, and balanced living.`,
-        needs: [
-          'Intellectual peer who loves discussing macro trends and human psychology',
-          'Grounded personal life to decompress from high-stakes decision making',
-          'Shared enjoyment of fitness, sports, and world travel',
-          'High emotional maturity, transparency, and loyalty'
-        ],
-        hobbies: [
-          'Playing tennis, golf, or racquet sports',
-          'Reading economic history and biographies of leaders',
-          'Fine dining and tasting aged vintage wines',
-          'Skiing in the Alps or Rockies'
-        ],
-        interests: [
-          'Venture investing and capital allocation theory',
-          'Geopolitics and global trade dynamics',
-          'High-performance sports and longevity science',
-          'Game theory and decision architecture'
-        ],
-        qualities: {
-          communicationStyle: 'Sharp, concise, articulate, and strategic',
-          energy: 'Decisive, ambitious, steady, and reliable',
-          humor: 'Wry, clever, observant',
-          values: ['Integrity', 'Long-term thinking', 'Discipline', 'Loyalty']
-        },
-        dealbreakers: [
-          'Financial irresponsibility and recklessness',
-          'Dishonesty and breaking commitments',
-          'Passive, unambitious mindset'
-        ]
-      };
-
-    default:
-      return {
-        title: `Innovator & Creative Builder (@${igHandle})`,
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
-        location: 'Global / Metropolitan',
-        agentSummary: `Synthesized agent from LinkedIn professional background and Instagram public lifestyle. High agency, creative explorer balancing ambitious work with genuine human warmth.`,
-        needs: [
-          'A partner who champions mutual ambition and values honest communication',
-          'Curiosity to explore new ideas, cuisines, and travel destinations',
-          'Emotional safety, kindness, and low-friction problem solving',
-          'Balance between focused dedication and spontaneous fun'
-        ],
-        hobbies: [
-          'Exploring local specialty cafes and trying new recipes',
-          'Outdoor activities: hiking, running, or cycling',
-          'Reading across non-fiction, philosophy, and memoirs',
-          'Weekend photography and city exploration'
-        ],
-        interests: [
-          'Future trends in technology, culture, and human society',
-          'Personal development, fitness, and mindfulness',
-          'Community building and collaborative projects',
-          'Cinema, music, and contemporary arts'
-        ],
-        qualities: {
-          communicationStyle: 'Open, warm, direct, and attentive',
-          energy: 'Curious, grounded, positive, and driven',
-          humor: 'Playful, situational, witty',
-          values: ['Authenticity', 'Curiosity', 'Kindness', 'Growth']
-        },
-        dealbreakers: [
-          'Passive-aggressive communication',
-          'Lack of curiosity about the world',
-          'Disrespect for personal boundaries'
-        ]
-      };
-  }
-}
 
 export async function POST(request) {
   try {
@@ -368,50 +131,60 @@ export async function POST(request) {
       );
     }
 
-    const linkedinHandle = extractUsernameFromUrl(linkedinUrl, 'linkedin');
-    const instagramHandle = extractUsernameFromUrl(instagramUrl, 'instagram');
-    const combinedSignals = `${linkedinUrl} ${instagramUrl} ${linkedinHandle} ${instagramHandle}`;
-    
-    // Check if it's a known figure
+    // 1. Run live scraping in parallel on both official URLs
+    const [linkedinScrape, instagramScrape] = await Promise.all([
+      scrapePublicUrl(linkedinUrl, 'linkedin'),
+      scrapePublicUrl(instagramUrl, 'instagram')
+    ]);
+
+    // 2. Synthesize agent persona dynamically from actual scraped metadata
+    const synthesized = synthesizeAgentFromScrapedData({
+      linkedinScrape,
+      instagramScrape,
+      linkedinUrl,
+      instagramUrl
+    });
+
+    // 3. Check if matching any high-profile curated figure
+    const combinedSignals = `${linkedinUrl} ${instagramUrl} ${synthesized.name}`.toLowerCase();
     let matchedFigure = null;
     for (const [key, figure] of Object.entries(KNOWN_FIGURES)) {
-      if (combinedSignals.toLowerCase().includes(key)) {
+      if (combinedSignals.includes(key)) {
         matchedFigure = figure;
         break;
       }
     }
 
-    const computedName = nameOverride || (matchedFigure ? matchedFigure.name : formatNameFromSlug(linkedinHandle));
-    const id = `${linkedinHandle}-${Date.now().toString(36)}`;
+    const id = `${(synthesized.name || 'user').toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now().toString(36)}`;
 
-    let baseData;
-    if (matchedFigure) {
-      baseData = {
-        ...matchedFigure,
-        id,
-        name: computedName,
-        linkedin: linkedinUrl.trim(),
-        instagram: instagramUrl.trim(),
-      };
-    } else {
-      const archetype = detectArchetype(combinedSignals);
-      const generated = generateArchetypePersona(computedName, archetype, instagramHandle);
-      baseData = {
-        id,
-        name: computedName,
-        ...generated,
-        linkedin: linkedinUrl.trim(),
-        instagram: instagramUrl.trim(),
-        gender: "unspecified",
-        interestedIn: ["male", "female"],
-      };
-    }
+    const finalProfile = {
+      id,
+      name: nameOverride || (matchedFigure ? matchedFigure.name : synthesized.name),
+      title: matchedFigure?.title || synthesized.title,
+      avatar: (matchedFigure?.avatar || synthesized.avatar),
+      linkedin: linkedinUrl.trim(),
+      instagram: instagramUrl.trim(),
+      gender: matchedFigure?.gender || "unspecified",
+      interestedIn: matchedFigure?.interestedIn || ["male", "female"],
+      location: matchedFigure?.location || "Global / Metropolitan",
+      agentSummary: matchedFigure?.agentSummary || synthesized.agentSummary,
+      needs: matchedFigure?.needs || synthesized.needs,
+      hobbies: matchedFigure?.hobbies || synthesized.hobbies,
+      interests: matchedFigure?.interests || synthesized.interests,
+      qualities: matchedFigure?.qualities || synthesized.qualities,
+      dealbreakers: matchedFigure?.dealbreakers || synthesized.dealbreakers,
+      scrapedLive: {
+        linkedinTitle: linkedinScrape?.title || null,
+        instagramDesc: instagramScrape?.description || null
+      }
+    };
 
-    // Add to runtime memory
-    addGlobalProfile(baseData);
+    // Store in global runtime memory
+    addGlobalProfile(finalProfile);
 
-    return NextResponse.json(baseData, { status: 201 });
+    return NextResponse.json(finalProfile, { status: 201 });
   } catch (error) {
+    console.error('Analyze API error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
