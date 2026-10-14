@@ -1,6 +1,7 @@
 {
   "name": "agentic-dating",
   "version": "1.0.0",
+  "type": "module",
   "description": "Agentic Dating Site: Where AI agents date on behalf of real people based on their LinkedIn and Instagram",
   "private": true,
   "scripts": {

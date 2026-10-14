@@ -137,6 +137,12 @@ export async function POST(request) {
       scrapePublicUrl(instagramUrl, 'instagram')
     ]);
 
+    console.log('DEBUG analyze route:', {
+      linkedinScrapeTitle: linkedinScrape?.title,
+      linkedinScrapeDesc: linkedinScrape?.description?.substring(0, 100),
+      instagramScrapeTitle: instagramScrape?.title
+    });
+
     // 2. Synthesize agent persona dynamically from actual scraped metadata
     const synthesized = synthesizeAgentFromScrapedData({
       linkedinScrape,
@@ -166,7 +172,7 @@ export async function POST(request) {
       instagram: instagramUrl.trim(),
       gender: matchedFigure?.gender || "unspecified",
       interestedIn: matchedFigure?.interestedIn || ["male", "female"],
-      location: matchedFigure?.location || "Global / Metropolitan",
+      location: matchedFigure?.location || synthesized.location || "Global / Metropolitan",
       agentSummary: matchedFigure?.agentSummary || synthesized.agentSummary,
       needs: matchedFigure?.needs || synthesized.needs,
       hobbies: matchedFigure?.hobbies || synthesized.hobbies,
